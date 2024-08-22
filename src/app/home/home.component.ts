@@ -11,7 +11,7 @@ import { MatTab, MatTabGroup } from '@angular/material/tabs';
 import { CoursesCardListComponent } from '../courses-card-list/courses-card-list.component';
 import { MatDialog } from '@angular/material/dialog';
 import { MessagesService } from '../messages/messages.service';
-import { catchError, from, throwError } from 'rxjs';
+import { catchError, from, interval, startWith, throwError } from 'rxjs';
 import {
   toObservable,
   toSignal,
@@ -36,6 +36,8 @@ export class HomeComponent implements OnInit {
   loadingService = inject(LoadingService);
   messagesService = inject(MessagesService);
 
+  injector = inject(Injector);
+
   dialog = inject(MatDialog);
 
   beginnerCourses = computed(() => {
@@ -48,8 +50,64 @@ export class HomeComponent implements OnInit {
     return courses.filter(({ category }) => category === 'ADVANCED');
   });
 
+  courses$ = from(this.coursesService.loadAllCourses());
+
   ngOnInit(): void {
     this.loadCourses();
+  }
+
+  // onToSignal() {
+  //   const number$ = interval(1000).pipe(startWith(0));
+  //   const numbers = toSignal(number$, {
+  //     injector: this.injector,
+  //     // initialValue: 0,
+  //     requireSync: true,
+  //   });
+
+  //   effect(
+  //     () => {
+  //       console.log(numbers());
+  //     },
+  //     {
+  //       injector: this.injector,
+  //     }
+  //   );
+  // }
+
+  // error handling
+  onToSignal() {
+    try {
+      const courses$ = from(this.coursesService.loadAllCourses()).pipe(
+        catchError((e) => {
+          console.log(`catchError ${e}`);
+          throw e;
+        })
+      );
+      const courses = toSignal(courses$, {
+        injector: this.injector,
+        rejectErrors: true,
+      });
+      effect(
+        () => {
+          console.log(courses());
+        },
+        {
+          injector: this.injector,
+        }
+      );
+    } catch (error) {
+      console.log('error catch', error);
+    }
+  }
+
+  onToObservable() {
+    // const numbers = signal(0);
+    // const numbers$ = toObservable(numbers, {
+    //   injector: this.injector,
+    // });
+    // numbers$.subscribe((val) => {
+    //   console.log(val);
+    // });
   }
 
   async loadCourses() {
