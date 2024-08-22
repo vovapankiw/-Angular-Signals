@@ -1,8 +1,6 @@
 
 <div class="form-control">
-
-  <label>{{label()}}</label>
-
+  <ng-content select=".title"></ng-content>
   <select  #category [value]="value()" (change)="onCategoryChnaged(category.value)">
     <option value="BEGINNER">Beginners</option>
     <option value="INTERMEDIATE">Intermediate</option>
