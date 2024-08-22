@@ -56,7 +56,6 @@ export class HomeComponent implements OnInit {
     try {
       const courses = await this.coursesService.loadAllCourses();
       this.#courses.set(courses);
-      throw new Error();
     } catch (e) {
       this.messagesService.showMessage('Error loading courses', 'error');
       console.log(e);
