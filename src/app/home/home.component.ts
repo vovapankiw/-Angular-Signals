@@ -1,6 +1,11 @@
-import { ChangeDetectionStrategy, EffectRef, signal } from '@angular/core';
+import { CoursesService } from './../services/courses.service';
+import {
+  ChangeDetectionStrategy,
+  EffectRef,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { Component, computed, effect, inject, Injector } from '@angular/core';
-import { CoursesService } from '../services/courses.service';
 import { Course, sortCoursesBySeqNo } from '../models/course.model';
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
 import { CoursesCardListComponent } from '../courses-card-list/courses-card-list.component';
@@ -13,6 +18,8 @@ import {
   outputToObservable,
   outputFromObservable,
 } from '@angular/core/rxjs-interop';
+import { CoursesServiceWithFetch } from '../services/courses-fetch.service';
+import { openEditCourseDialog } from '../edit-course-dialog/edit-course-dialog.component';
 
 @Component({
   selector: 'home',
@@ -22,31 +29,66 @@ import {
   styleUrl: './home.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class HomeComponent {
-  counter = signal<number>(0);
+export class HomeComponent implements OnInit {
+  #courses = signal<Course[]>([]);
+  coursesService = inject(CoursesService);
 
-  tenXCounter = computed(() => {
-    const val = this.counter();
-    return val * 10;
+  dialog = inject(MatDialog);
+
+  beginnerCourses = computed(() => {
+    const courses = this.#courses();
+    return courses.filter(({ category }) => category === 'BEGINNER');
   });
 
-  effectRef: EffectRef | null = null;
+  advancedCourses = computed(() => {
+    const courses = this.#courses();
+    return courses.filter(({ category }) => category === 'ADVANCED');
+  });
 
-  constructor() {
-    this.effectRef = effect((onCleanup) => {
-      const counter = this.counter();
-      const timeout = setTimeout(() => {
-        console.log('Effect', counter);
-      }, 1000);
-      onCleanup(() => clearInterval(timeout));
+  ngOnInit(): void {
+    this.loadCourses();
+  }
+
+  async loadCourses() {
+    try {
+      const courses = await this.coursesService.loadAllCourses();
+      this.#courses.set(courses);
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  onCourseUpdated(updateCoures: Course) {
+    const courses = this.#courses();
+
+    const newCourses = courses.map((course) => {
+      return course.id === updateCoures.id ? updateCoures : course;
     });
+
+    this.#courses.set(newCourses);
   }
 
-  append() {
-    this.counter.update((c) => c + 1);
+  async onCourseDeleted(courseId: string) {
+    try {
+      await this.coursesService.deleteCourse(courseId);
+      const courses = this.#courses();
+      const newCourses = courses.filter((course) => course.id !== courseId);
+      this.#courses.set(newCourses);
+    } catch (err) {
+      console.error(err);
+      alert(`Error deleting course.`);
+    }
   }
 
-  cleanup() {
-    this.effectRef?.destroy();
+  async onAddCourse() {
+    const newCourse = await openEditCourseDialog(this.dialog, {
+      mode: 'create',
+      title: 'Create New Course',
+    });
+    if (!newCourse) {
+      return;
+    }
+    const newCourses = [...this.#courses(), newCourse];
+    this.#courses.set(newCourses);
   }
 }
