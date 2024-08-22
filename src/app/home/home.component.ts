@@ -20,6 +20,7 @@ import {
 } from '@angular/core/rxjs-interop';
 import { CoursesServiceWithFetch } from '../services/courses-fetch.service';
 import { openEditCourseDialog } from '../edit-course-dialog/edit-course-dialog.component';
+import { LoadingService } from '../loading/loading.service';
 
 @Component({
   selector: 'home',
@@ -32,6 +33,7 @@ import { openEditCourseDialog } from '../edit-course-dialog/edit-course-dialog.c
 export class HomeComponent implements OnInit {
   #courses = signal<Course[]>([]);
   coursesService = inject(CoursesService);
+  loadingService = inject(LoadingService);
 
   dialog = inject(MatDialog);
 
