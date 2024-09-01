@@ -1,5 +1,6 @@
 import {
   ComponentFixture,
+  fakeAsync,
   TestBed,
   tick,
   waitForAsync,
@@ -87,7 +88,8 @@ describe('CoursesCardListComponent', () => {
   });
 
   describe('output: courseUpdated', () => {
-    it('should emit updated course after edit', () => {
+    it('should emit updated course after edit', fakeAsync(() => {
+      let courseUpdate: Course | undefined;
       const testData = {
         id: '18',
         title: 'Test title',
@@ -108,9 +110,7 @@ describe('CoursesCardListComponent', () => {
         afterClosed: () => of(testData),
       });
       fixture.componentRef.setInput('courses', [testData]);
-      component.courseUpdated.subscribe((course) => {
-        expect(course).toEqual(testData);
-      });
+      component.courseUpdated.subscribe((course) => (courseUpdate = course));
 
       fixture.detectChanges();
 
@@ -119,15 +119,19 @@ describe('CoursesCardListComponent', () => {
       );
 
       editButton.nativeElement.click();
+      tick();
 
       expect(dialogMock.open)
         .withContext('open edit dialog')
         .toHaveBeenCalled();
-    });
+
+      expect(courseUpdate).toBe(testData);
+    }));
   });
 
   describe('output: courseDeleted', () => {
-    it('should emit course id to be deleted', () => {
+    it('should emit course id to be deleted', async () => {
+      let courseIdDel: string | undefined;
       const testData = {
         id: '18',
         title: 'Test title',
@@ -145,9 +149,7 @@ describe('CoursesCardListComponent', () => {
         price: 50,
       };
       fixture.componentRef.setInput('courses', [testData]);
-      component.courseDeleted.subscribe((courseId) => {
-        expect(courseId).toEqual(testData.id);
-      });
+      component.courseDeleted.subscribe((courseId) => (courseIdDel = courseId));
 
       fixture.detectChanges();
 
@@ -156,6 +158,8 @@ describe('CoursesCardListComponent', () => {
       );
 
       deleteButton.nativeElement.click();
+
+      expect(courseIdDel).toBe(testData.id);
     });
   });
 });
