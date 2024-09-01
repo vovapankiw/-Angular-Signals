@@ -11,7 +11,6 @@ import { RouterLink } from '@angular/router';
 import { Course } from '../models/course.model';
 import { MatDialog } from '@angular/material/dialog';
 import { openEditCourseDialog } from '../edit-course-dialog/edit-course-dialog.component';
-// import {openEditCourseDialog} from "../edit-course-dialog/edit-course-dialog.component";
 
 @Component({
   selector: 'courses-card-list',
@@ -40,7 +39,7 @@ export class CoursesCardListComponent {
     if (!newCourse) {
       return;
     }
-    console.log(`Course edited:`, newCourse);
+
     this.courseUpdated.emit(newCourse);
   }
 
