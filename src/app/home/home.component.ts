@@ -32,12 +32,11 @@ import { LoadingService } from '../loading/loading.service';
 })
 export class HomeComponent implements OnInit {
   #courses = signal<Course[]>([]);
+
+  injector = inject(Injector);
   coursesService = inject(CoursesService);
   loadingService = inject(LoadingService);
   messagesService = inject(MessagesService);
-
-  injector = inject(Injector);
-
   dialog = inject(MatDialog);
 
   beginnerCourses = computed(() => {
@@ -54,6 +53,15 @@ export class HomeComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadCourses();
+  }
+  async loadCourses() {
+    try {
+      const courses = await this.coursesService.loadAllCourses();
+      this.#courses.set(courses);
+    } catch (e) {
+      this.messagesService.showMessage('Error loading courses', 'error');
+      console.log(e);
+    }
   }
 
   // onToSignal() {
@@ -108,16 +116,6 @@ export class HomeComponent implements OnInit {
     // numbers$.subscribe((val) => {
     //   console.log(val);
     // });
-  }
-
-  async loadCourses() {
-    try {
-      const courses = await this.coursesService.loadAllCourses();
-      this.#courses.set(courses);
-    } catch (e) {
-      this.messagesService.showMessage('Error loading courses', 'error');
-      console.log(e);
-    }
   }
 
   onCourseUpdated(updateCoures: Course) {

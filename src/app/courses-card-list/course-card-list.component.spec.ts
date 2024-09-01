@@ -14,6 +14,20 @@ import { Course } from '../models/course.model';
 import { of } from 'rxjs';
 import { CourseCategory } from '../models/course-category.model';
 import { subscribeSpyTo } from '@hirez_io/observer-spy';
+import { Component, input, Input, output, Output } from '@angular/core';
+
+@Component({
+  standalone: true,
+  selector: 'courses-card-list',
+  template: ` <p>Hello world</p> `,
+})
+export class MockCoursesCardListComponent {
+  courses = input.required<Course[]>();
+
+  courseUpdated = output<Course>();
+
+  courseDeleted = output<string>();
+}
 
 describe('CoursesCardListComponent', () => {
   let component: CoursesCardListComponent;
